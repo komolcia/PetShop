@@ -64,6 +64,7 @@ namespace PetShop.Models
 
     public class RegisterViewModel
     {
+        public string Name { get; set; }
         [Required]
         [EmailAddress]
         [Display(Name = "Adres e-mail")]

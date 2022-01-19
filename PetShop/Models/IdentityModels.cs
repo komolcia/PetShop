@@ -29,5 +29,13 @@ namespace PetShop.Models
         {
             return new ApplicationDbContext();
         }
+
+        public System.Data.Entity.DbSet<PetShop.Models.Pet> Pets { get; set; }
+
+        public System.Data.Entity.DbSet<PetShop.Models.Species> Species { get; set; }
+
+        public System.Data.Entity.DbSet<PetShop.Models.Customer> Customers { get; set; }
+
+        public System.Data.Entity.DbSet<PetShop.Models.Buy> Buys { get; set; }
     }
 }

@@ -18,11 +18,15 @@ namespace PetShop.Controllers
         private ApplicationSignInManager _signInManager;
         private ApplicationUserManager _userManager;
 
+
+        private ApplicationDbContext context;
+
         public AccountController()
         {
+            context = new ApplicationDbContext();
         }
 
-        public AccountController(ApplicationUserManager userManager, ApplicationSignInManager signInManager )
+        public AccountController(ApplicationUserManager userManager, ApplicationSignInManager signInManager)
         {
             UserManager = userManager;
             SignInManager = signInManager;
@@ -34,9 +38,9 @@ namespace PetShop.Controllers
             {
                 return _signInManager ?? HttpContext.GetOwinContext().Get<ApplicationSignInManager>();
             }
-            private set 
-            { 
-                _signInManager = value; 
+            private set
+            {
+                _signInManager = value;
             }
         }
 
@@ -73,8 +77,8 @@ namespace PetShop.Controllers
                 return View(model);
             }
 
-            // Nie powoduje to liczenia niepowodzeń logowania w celu zablokowania konta
-            // Aby włączyć wyzwalanie blokady konta po określonej liczbie niepomyślnych prób wprowadzenia hasła, zmień ustawienie na shouldLockout: true
+            // This doesn't count login failures towards account lockout
+            // To enable password failures to trigger account lockout, change to shouldLockout: true
             var result = await SignInManager.PasswordSignInAsync(model.Email, model.Password, model.RememberMe, shouldLockout: false);
             switch (result)
             {
@@ -86,7 +90,7 @@ namespace PetShop.Controllers
                     return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = model.RememberMe });
                 case SignInStatus.Failure:
                 default:
-                    ModelState.AddModelError("", "Nieprawidłowa próba logowania.");
+                    ModelState.AddModelError("", "Invalid login attempt.");
                     return View(model);
             }
         }
@@ -96,7 +100,7 @@ namespace PetShop.Controllers
         [AllowAnonymous]
         public async Task<ActionResult> VerifyCode(string provider, string returnUrl, bool rememberMe)
         {
-            // Wymagaj, aby użytkownik zalogował się już za pomocą nazwy użytkownika/hasła lub logowania zewnętrznego
+            // Require that the user has already logged in via username/password or external login
             if (!await SignInManager.HasBeenVerifiedAsync())
             {
                 return View("Error");
@@ -116,11 +120,11 @@ namespace PetShop.Controllers
                 return View(model);
             }
 
-            // Poniższy kod chroni przed atakami na zasadzie pełnego przeglądu kodu dwuczynnikowego. 
-            // Jeśli użytkownik będzie wprowadzać niepoprawny kod przez określoną ilość czasu, konto użytkownika 
-            // zostanie zablokowane na określoną ilość czasu. 
-            // Możesz skonfigurować ustawienia blokady konta w elemencie IdentityConfig
-            var result = await SignInManager.TwoFactorSignInAsync(model.Provider, model.Code, isPersistent:  model.RememberMe, rememberBrowser: model.RememberBrowser);
+            // The following code protects for brute force attacks against the two factor codes. 
+            // If a user enters incorrect codes for a specified amount of time then the user account 
+            // will be locked out for a specified amount of time. 
+            // You can configure the account lockout settings in IdentityConfig
+            var result = await SignInManager.TwoFactorSignInAsync(model.Provider, model.Code, isPersistent: model.RememberMe, rememberBrowser: model.RememberBrowser);
             switch (result)
             {
                 case SignInStatus.Success:
@@ -129,7 +133,7 @@ namespace PetShop.Controllers
                     return View("Lockout");
                 case SignInStatus.Failure:
                 default:
-                    ModelState.AddModelError("", "Nieprawidłowy kod.");
+                    ModelState.AddModelError("", "Invalid code.");
                     return View(model);
             }
         }
@@ -155,22 +159,58 @@ namespace PetShop.Controllers
                 var result = await UserManager.CreateAsync(user, model.Password);
                 if (result.Succeeded)
                 {
-                    await SignInManager.SignInAsync(user, isPersistent:false, rememberBrowser:false);
-                    
-                    // Aby uzyskać więcej informacji o sposobie włączania potwierdzania konta i resetowaniu hasła, odwiedź stronę https://go.microsoft.com/fwlink/?LinkID=320771
-                    // Wyślij wiadomość e-mail z tym łączem
+                    await SignInManager.SignInAsync(user, isPersistent: false, rememberBrowser: false);
+
+                    // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
+                    // Send an email with this link
                     // string code = await UserManager.GenerateEmailConfirmationTokenAsync(user.Id);
                     // var callbackUrl = Url.Action("ConfirmEmail", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);
-                    // await UserManager.SendEmailAsync(user.Id, "Potwierdź konto", "Potwierdź konto, klikając <a href=\"" + callbackUrl + "\">tutaj</a>");
+                    // await UserManager.SendEmailAsync(user.Id, "Confirm your account", "Please confirm your account by clicking <a href=\"" + callbackUrl + "\">here</a>");
 
                     return RedirectToAction("Index", "Home");
                 }
                 AddErrors(result);
             }
 
-            // Dotarcie do tego miejsca wskazuje, że wystąpił błąd, wyświetl ponownie formularz
+            // If we got this far, something failed, redisplay form
             return View(model);
         }
+        [Authorize(Roles ="Admin")]
+
+        // GET: /Account/RegisterRole
+        [AllowAnonymous]
+        [HttpGet]
+        public ActionResult RegisterRole()
+        {
+            ViewBag.Name = new SelectList(context.Roles.ToList(), "Name", "Name");
+            ViewBag.UserName = new SelectList(context.Users.ToList(), "UserName", "UserName");
+            return View();
+        }
+
+
+        // POST: /Account/RegisterRole
+        [HttpPost]
+        [AllowAnonymous]
+        [ValidateAntiForgeryToken]
+        public async Task<ActionResult> RegisterRole(RegisterViewModel model, ApplicationUser user)
+        {
+            var userId = context.Users.Where(i => i.UserName == user.UserName).Select(s => s.Id);
+            string updateId = "";
+            foreach (var i in userId)
+            {
+                updateId = i.ToString();
+            }
+
+            //assign roles
+            await this.UserManager.AddToRoleAsync(updateId, model.Name);
+            return RedirectToAction("Index", "Home");
+        }
+
+
+
+
+
+
 
         //
         // GET: /Account/ConfirmEmail
@@ -205,19 +245,19 @@ namespace PetShop.Controllers
                 var user = await UserManager.FindByNameAsync(model.Email);
                 if (user == null || !(await UserManager.IsEmailConfirmedAsync(user.Id)))
                 {
-                    // Nie ujawniaj informacji o tym, że użytkownik nie istnieje lub nie został potwierdzony
+                    // Don't reveal that the user does not exist or is not confirmed
                     return View("ForgotPasswordConfirmation");
                 }
 
-                // Aby uzyskać więcej informacji o sposobie włączania potwierdzania konta i resetowaniu hasła, odwiedź stronę https://go.microsoft.com/fwlink/?LinkID=320771
-                // Wyślij wiadomość e-mail z tym łączem
+                // For more information on how to enable account confirmation and password reset please visit https://go.microsoft.com/fwlink/?LinkID=320771
+                // Send an email with this link
                 // string code = await UserManager.GeneratePasswordResetTokenAsync(user.Id);
                 // var callbackUrl = Url.Action("ResetPassword", "Account", new { userId = user.Id, code = code }, protocol: Request.Url.Scheme);		
-                // await UserManager.SendEmailAsync(user.Id, "Resetuj hasło", "Resetuj hasło, klikając <a href=\"" + callbackUrl + "\">tutaj</a>");
+                // await UserManager.SendEmailAsync(user.Id, "Reset Password", "Please reset your password by clicking <a href=\"" + callbackUrl + "\">here</a>");
                 // return RedirectToAction("ForgotPasswordConfirmation", "Account");
             }
 
-            // Dotarcie do tego miejsca wskazuje, że wystąpił błąd, wyświetl ponownie formularz
+            // If we got this far, something failed, redisplay form
             return View(model);
         }
 
@@ -251,7 +291,7 @@ namespace PetShop.Controllers
             var user = await UserManager.FindByNameAsync(model.Email);
             if (user == null)
             {
-                // Nie ujawniaj informacji o tym, że użytkownik nie istnieje
+                // Don't reveal that the user does not exist
                 return RedirectToAction("ResetPasswordConfirmation", "Account");
             }
             var result = await UserManager.ResetPasswordAsync(user.Id, model.Code, model.Password);
@@ -278,7 +318,7 @@ namespace PetShop.Controllers
         [ValidateAntiForgeryToken]
         public ActionResult ExternalLogin(string provider, string returnUrl)
         {
-            // Żądaj przekierowania do dostawcy logowania zewnętrznego
+            // Request a redirect to the external login provider
             return new ChallengeResult(provider, Url.Action("ExternalLoginCallback", "Account", new { ReturnUrl = returnUrl }));
         }
 
@@ -309,7 +349,7 @@ namespace PetShop.Controllers
                 return View();
             }
 
-            // Wygeneruj i wyślij token
+            // Generate the token and send it
             if (!await SignInManager.SendTwoFactorCodeAsync(model.SelectedProvider))
             {
                 return View("Error");
@@ -328,7 +368,7 @@ namespace PetShop.Controllers
                 return RedirectToAction("Login");
             }
 
-            // Zaloguj użytkownika przy użyciu tego dostawcy logowania zewnętrznego, jeśli użytkownik ma już nazwę logowania
+            // Sign in the user with this external login provider if the user already has a login
             var result = await SignInManager.ExternalSignInAsync(loginInfo, isPersistent: false);
             switch (result)
             {
@@ -340,7 +380,7 @@ namespace PetShop.Controllers
                     return RedirectToAction("SendCode", new { ReturnUrl = returnUrl, RememberMe = false });
                 case SignInStatus.Failure:
                 default:
-                    // Jeśli użytkownik nie ma konta, poproś go o utworzenie konta
+                    // If the user does not have an account, then prompt the user to create an account
                     ViewBag.ReturnUrl = returnUrl;
                     ViewBag.LoginProvider = loginInfo.Login.LoginProvider;
                     return View("ExternalLoginConfirmation", new ExternalLoginConfirmationViewModel { Email = loginInfo.Email });
@@ -361,7 +401,7 @@ namespace PetShop.Controllers
 
             if (ModelState.IsValid)
             {
-                // Uzyskaj informacje o użytkowniku od dostawcy logowania zewnętrznego
+                // Get the information about the user from the external login provider
                 var info = await AuthenticationManager.GetExternalLoginInfoAsync();
                 if (info == null)
                 {
@@ -423,8 +463,8 @@ namespace PetShop.Controllers
             base.Dispose(disposing);
         }
 
-        #region Pomocnicy
-        // Używane w przypadku ochrony XSRF podczas dodawania logowań zewnętrznych
+        #region Helpers
+        // Used for XSRF protection when adding external logins
         private const string XsrfKey = "XsrfId";
 
         private IAuthenticationManager AuthenticationManager

@@ -11,119 +11,117 @@ using PetShop.Models;
 namespace PetShop.Controllers
 {
     [Authorize]
-    public class PetsController : Controller
+    public class BuysController : Controller
     {
         private ApplicationDbContext db = new ApplicationDbContext();
 
-        // GET: Pets
+        // GET: Buys
         public ActionResult Index()
         {
-            var pets = db.Pets.Include(p => p.Buy).Include(p => p.Species);
-            return View(pets.ToList());
+            var buys = db.Buys.Include(b => b.Customer).Include(b => b.Pet);
+            return View(buys.ToList());
         }
 
-        // GET: Pets/Details/5
+        // GET: Buys/Details/5
         public ActionResult Details(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Pet pet = db.Pets.Find(id);
-            if (pet == null)
+            Buy buy = db.Buys.Find(id);
+            if (buy == null)
             {
                 return HttpNotFound();
             }
-            return View(pet);
+            return View(buy);
         }
 
-        // GET: Pets/Create
-        [Authorize(Roles ="Admin")]
+        // GET: Buys/Create
         public ActionResult Create()
         {
-            ViewBag.PetId = new SelectList(db.Buys, "Id", "Id");
-            ViewBag.SpeciesId = new SelectList(db.Species, "Id", "Name");
+            ViewBag.CustomerId = new SelectList(db.Customers, "CustomerId", "Name");
+            ViewBag.Id = new SelectList(db.Pets, "PetId", "Name");
             return View();
         }
 
-        // POST: Pets/Create
+        // POST: Buys/Create
         // Aby zapewnić ochronę przed atakami polegającymi na przesyłaniu dodatkowych danych, włącz określone właściwości, z którymi chcesz utworzyć powiązania.
         // Aby uzyskać więcej szczegółów, zobacz https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Create([Bind(Include = "PetId,Name,SpeciesId,DateOfBirth")] Pet pet)
+        public ActionResult Create([Bind(Include = "Id,CustomerId,DateBuied")] Buy buy)
         {
             if (ModelState.IsValid)
             {
-                db.Pets.Add(pet);
+                db.Buys.Add(buy);
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
 
-            ViewBag.PetId = new SelectList(db.Buys, "Id", "Id", pet.PetId);
-            ViewBag.SpeciesId = new SelectList(db.Species, "Id", "Name", pet.SpeciesId);
-            return View(pet);
+            ViewBag.CustomerId = new SelectList(db.Customers, "CustomerId", "Name", buy.CustomerId);
+            ViewBag.Id = new SelectList(db.Pets, "PetId", "Name", buy.Id);
+            return View(buy);
         }
 
-        // GET: Pets/Edit/5
-        [Authorize(Roles ="Admin")]
+        // GET: Buys/Edit/5
         public ActionResult Edit(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Pet pet = db.Pets.Find(id);
-            if (pet == null)
+            Buy buy = db.Buys.Find(id);
+
+            if (buy == null)
             {
                 return HttpNotFound();
             }
-            ViewBag.PetId = new SelectList(db.Buys, "Id", "Id", pet.PetId);
-            ViewBag.SpeciesId = new SelectList(db.Species, "Id", "Name", pet.SpeciesId);
-            return View(pet);
+            ViewBag.CustomerId = new SelectList(db.Customers, "CustomerId", "Name", buy.CustomerId);
+            ViewBag.Id = new SelectList(db.Pets, "PetId", "Name", buy.Id);
+            return View(buy);
         }
 
-        // POST: Pets/Edit/5
+        // POST: Buys/Edit/5
         // Aby zapewnić ochronę przed atakami polegającymi na przesyłaniu dodatkowych danych, włącz określone właściwości, z którymi chcesz utworzyć powiązania.
         // Aby uzyskać więcej szczegółów, zobacz https://go.microsoft.com/fwlink/?LinkId=317598.
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public ActionResult Edit([Bind(Include = "PetId,Name,SpeciesId,DateOfBirth")] Pet pet)
+        public ActionResult Edit([Bind(Include = "Id,CustomerId,DateBuied")] Buy buy)
         {
             if (ModelState.IsValid)
             {
-                db.Entry(pet).State = EntityState.Modified;
+                db.Entry(buy).State = EntityState.Modified;
                 db.SaveChanges();
                 return RedirectToAction("Index");
             }
-            ViewBag.PetId = new SelectList(db.Buys, "Id", "Id", pet.PetId);
-            ViewBag.SpeciesId = new SelectList(db.Species, "Id", "Name", pet.SpeciesId);
-            return View(pet);
+            ViewBag.CustomerId = new SelectList(db.Customers, "CustomerId", "Name", buy.CustomerId);
+            ViewBag.Id = new SelectList(db.Pets, "PetId", "Name", buy.Id);
+            return View(buy);
         }
 
-        // GET: Pets/Delete/5
-        [Authorize(Roles ="Admin")]
+        // GET: Buys/Delete/5
         public ActionResult Delete(int? id)
         {
             if (id == null)
             {
                 return new HttpStatusCodeResult(HttpStatusCode.BadRequest);
             }
-            Pet pet = db.Pets.Find(id);
-            if (pet == null)
+            Buy buy = db.Buys.Find(id);
+            if (buy == null)
             {
                 return HttpNotFound();
             }
-            return View(pet);
+            return View(buy);
         }
 
-        // POST: Pets/Delete/5
+        // POST: Buys/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public ActionResult DeleteConfirmed(int id)
         {
-            Pet pet = db.Pets.Find(id);
-            db.Pets.Remove(pet);
+            Buy buy = db.Buys.Find(id);
+            db.Buys.Remove(buy);
             db.SaveChanges();
             return RedirectToAction("Index");
         }
