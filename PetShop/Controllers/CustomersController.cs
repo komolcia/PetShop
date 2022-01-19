@@ -23,7 +23,7 @@ namespace PetShop.Controllers
         [ChildActionOnly]
         public ActionResult ListCustomer()
         {
-            var customers = db.Customers.Select(cus => new CustomerVM { Name = cus.Name, LastName = cus.LastName, Birthdate = cus.Birthdate }).ToList();
+            var customers = db.Customers.Select(cus => new CustomerVM { Name = cus.Name, LastName = cus.LastName, Birthdate = cus.Birthdate,CustomerId=cus.CustomerId }).ToList();
             return PartialView("_ListCustomer",customers);
         }
 
