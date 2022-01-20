@@ -12,6 +12,20 @@ namespace PetShop
         public static void RegisterRoutes(RouteCollection routes)
         {
             routes.IgnoreRoute("{resource}.axd/{*pathInfo}");
+            routes.LowercaseUrls = true;
+            routes.MapRoute(
+               name: "Details",
+               url: "Pet-{id}.html",
+               defaults: new { controller = "Pet", action = "Details" }
+               );
+           
+
+            routes.MapRoute(
+                name: "PetList",
+                url: "Species/{Name}",
+                defaults: new { controller = "Pet", action = "ListPet" }
+                );
+            
 
             routes.MapRoute(
                 name: "Default",

@@ -12,6 +12,7 @@ namespace PetShop.Models
 
         [Required]
         [StringLength(255)]
+        [Display(Name="Spiecies")]
         public string Name { get; set; }
     }
 }

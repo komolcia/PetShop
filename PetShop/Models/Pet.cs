@@ -9,9 +9,10 @@ namespace PetShop.Models
 {
     public class Pet
     {
-       
+        [Display(Name = "Pet")]
         public int PetId { get; set; }
         [Required]
+        [Display(Name = "Name Of Pet")]
         [StringLength(50, ErrorMessage = "First name cannot be longer than 50 characters.")]
         public string Name { get; set; }
         public Species Species { get; set; }
