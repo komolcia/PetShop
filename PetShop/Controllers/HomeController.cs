@@ -16,7 +16,7 @@ namespace PetShop.Controllers
 
         public ActionResult About()
         {
-            ViewBag.Message = "Your application description page.";
+            ViewBag.Message = "Charities around the world.";
 
             return View();
         }

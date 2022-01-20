@@ -21,6 +21,12 @@ namespace PetShop.Controllers
             var pets = db.Pets.Include(p => p.Buy).Include(p => p.Species);
             return View(pets.ToList());
         }
+        [ChildActionOnly]
+        public ActionResult ListPet()
+        {
+            var pets = db.Pets.Select(cus => new PetVM { Name = cus.Name, Species=cus.Species,DateOfBirth=cus.DateOfBirth, PetId = cus.PetId,SpeciesId=cus.SpeciesId ,Buy=cus.Buy}).ToList();
+            return PartialView("_ListPets", pets);
+        }
 
         // GET: Pets/Details/5
         public ActionResult Details(int? id)
@@ -123,6 +129,11 @@ namespace PetShop.Controllers
         public ActionResult DeleteConfirmed(int id)
         {
             Pet pet = db.Pets.Find(id);
+            Buy buy = db.Buys.Find(id);
+            if(buy!=null)
+            {
+                return RedirectToAction("Index");
+            }
             db.Pets.Remove(pet);
             db.SaveChanges();
             return RedirectToAction("Index");
