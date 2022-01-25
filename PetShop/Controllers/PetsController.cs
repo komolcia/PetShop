@@ -16,6 +16,7 @@ namespace PetShop.Controllers
         private ApplicationDbContext db = new ApplicationDbContext();
 
         // GET: Pets
+
         public ActionResult Index()
         {
             var pets = db.Pets.Include(p => p.Buy).Include(p => p.Species);

@@ -16,6 +16,8 @@ namespace PetShop.Controllers
         private ApplicationDbContext db = new ApplicationDbContext();
 
         // GET: Customers
+
+
         public ActionResult Index()
         {
             return View("Index");

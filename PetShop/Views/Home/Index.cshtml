@@ -6,7 +6,7 @@
 <div class="jumbotron"
      style=" background-image: linear-gradient(180deg,skyblue, white); height: 600px; margin-top: 0px; ">
     <center>
-        
+
         <div class="jumbotron"
              style=" background-image: url('https://thumbs.dreamstime.com/b/banner-two-hide-puppies-dogs-big-ears-paws-hanging-blank-row-isolated-blue-colored-background-198497906.jpg'); height: 400px; margin-top: 0px; width: 800px; border-radius: 15px;">
             <center>
@@ -15,7 +15,7 @@
                         <div class="text-white">
                             <h1 class="mb-3">PetShop</h1>
                             <h4 class="mb-3">For every bought animal we will give 20% of income to  charities!</h4>
-                            <a class="btn btn-info btn-lg" href="https://localhost:44346/Home/About">Would you like to learn more?</a> 
+                            <a class="btn btn-info btn-lg" href="https://localhost:44346/Home/About">Would you like to learn more?</a>
                         </div>
                     </div>
                 </div>
@@ -23,3 +23,15 @@
         </div>
     </center>
 </div>
+
+@if (Session["user"] == "Julia")
+{
+    <center>
+        <h1> Welcome Julia</h1>
+    </center>
+}else if (Response.Cookies["user1"]!=null)
+{
+    <center>
+        <h1> Welcome @Response.Cookies["user1"].Value</h1>
+    </center>
+}

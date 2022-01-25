@@ -41,14 +41,19 @@
                         <li>@Html.ActionLink("Assign Role", "RegisterRole", "Account")</li>
                     }
 
-                    </ul>
-                
-                <ul class="nav navbar-nav navbar-right">
-                     @Html.Partial("_LoginPartial")
                 </ul>
+
+                <ul class="nav navbar-nav navbar-right">
+                    @Html.Partial("_LoginPartial")
+                </ul>
+                <ul class="nav navbar-nav navbar-right">
+                   
+                </ul>
+
             </div>
         </div>
     </nav>
+   
 
     @RenderBody()
 </body>

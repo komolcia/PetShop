@@ -54,7 +54,7 @@ namespace PetShopTest
             int id = 0;
             // Arrange
             PetsController controller = new PetsController();
-            
+            controller.Create();
 
             // Act
             ViewResult result = controller.Edit(id) as ViewResult;
@@ -75,6 +75,21 @@ namespace PetShopTest
 
             // Assert
             Assert.IsNull(result);
+        }
+        [TestMethod]
+        public void CreatePet()
+        {
+            var species = new Species { Name = "Rabbit", Id = 1 };
+            var pet = new Pet {  Name = "Happy", SpeciesId=1, DateOfBirth = new DateTime(2000 / 02 / 08) };
+
+            PetsController controller = new PetsController();
+            controller.Create(pet);
+
+            // Act
+            ViewResult result = controller.Delete(2) as ViewResult;
+
+            // Assert
+            Assert.IsNotNull(result);
         }
     }
 }

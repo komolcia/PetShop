@@ -11,12 +11,14 @@ namespace PetShop.Models
     {
         [ForeignKey("Pet")]
         [CheckIfBought]
+        [Display(Name = "Pet")]
         public int Id { get; set; }
         
        
 
 
         public virtual Pet Pet { get; set; }
+        [Display(Name ="Customer")]
 
         public int CustomerId { get; set; }
 
